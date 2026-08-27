@@ -36,11 +36,12 @@ model Habit {
 }
 
 model HabitCheckIn {
-  id        String   @id @default(uuid())
-  habitId   String
-  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
-  localDate String   // Formatted local date string 'YYYY-MM-DD' representing the calendar day in user's timezone
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  habitId     String
+  habit       Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  checkedInAt DateTime @default(now()) // Instant in UTC when check-in was recorded
+  localDate   String   // Formatted local date string 'YYYY-MM-DD' representing calendar day in user's timezone
+  createdAt   DateTime @default(now())
 
   @@unique([habitId, localDate])
   @@index([habitId, localDate])
