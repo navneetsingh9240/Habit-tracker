@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  timezone     String   // IANA timezone string e.g., "Asia/Kolkata", "America/New_York"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  habits Habit[]
+
+  @@map("users")
+}
+
+model Habit {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  checkIns HabitCheckIn[]
+
+  @@index([userId])
+  @@map("habits")
+}
+
+model HabitCheckIn {
+  id        String   @id @default(uuid())
+  habitId   String
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  localDate String   // Formatted local date string 'YYYY-MM-DD' representing the calendar day in user's timezone
+  createdAt DateTime @default(now())
+
+  @@unique([habitId, localDate])
+  @@index([habitId, localDate])
+  @@map("habit_check_ins")
+}
