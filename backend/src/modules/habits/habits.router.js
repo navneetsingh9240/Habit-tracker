@@ -185,6 +185,22 @@ router.post('/:id/check-ins', verifyHabitOwnership, async (req, res, next) => {
       );
     }
 
+    // Verify date is not before habit creation local date
+    const habit = await prisma.habit.findUnique({
+      where: { id: habitId },
+      select: { createdAt: true },
+    });
+
+    if (habit) {
+      const habitCreationLocalDate = TimezoneService.getTodayLocalDate(userTimezone, habit.createdAt);
+      if (targetLocalDate < habitCreationLocalDate) {
+        throw new AppError(
+          `Cannot check in for date (${targetLocalDate}) prior to habit creation date (${habitCreationLocalDate}).`,
+          400
+        );
+      }
+    }
+
     // Attempt to create check-in with DB unique constraint protection
     try {
       const checkIn = await prisma.habitCheckIn.create({
